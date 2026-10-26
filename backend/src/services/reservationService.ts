@@ -24,6 +24,7 @@ export class ReservationService {
   availability(equipmentId: unknown, start: string, end: string) {
     if (!isEquipmentId(equipmentId)) throw new HttpError(400, "Unidad inexistente");
     const interval = validateInterval(start, end);
+    this.assertFutureStart(interval.start);
     return {
       equipmentId,
       start: interval.start,
@@ -34,8 +35,10 @@ export class ReservationService {
 
   create(input: { equipmentId: unknown; requester: string; start: string; end: string }) {
     const reservation = validateReservation({ ...input, id: randomUUID() });
+    this.assertFutureStart(reservation.start);
     this.database.exec("BEGIN IMMEDIATE");
     try {
+      this.assertFutureStart(reservation.start);
       if (!isAvailable(reservation.equipmentId, reservation.start, reservation.end, this.repository.list())) {
         throw new HttpError(409, "La unidad ya está reservada para ese intervalo");
       }
@@ -58,5 +61,11 @@ export class ReservationService {
 
   listReservations() {
     return this.repository.list();
+  }
+
+  private assertFutureStart(start: string) {
+    if (Date.parse(start) < Date.now()) {
+      throw new HttpError(400, "El horario de inicio ya pasó. Elegí una fecha y hora futura en Buenos Aires.");
+    }
   }
 }

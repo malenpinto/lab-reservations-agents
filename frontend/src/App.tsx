@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError, type Availability, type Equipment, type Reservation } from "./api";
-import { buenosAiresInputToIso, formatBuenosAires, todayInBuenosAires } from "./dateTime";
+import { assertFutureStart, buenosAiresInputToIso, formatBuenosAires, todayInBuenosAires } from "./dateTime";
 
 type Notice = { kind: "success" | "error" | "info"; text: string };
 
@@ -42,6 +42,7 @@ function App() {
   function getInterval() {
     const start = buenosAiresInputToIso(date, startTime);
     const end = buenosAiresInputToIso(date, endTime);
+    assertFutureStart(start);
     if (Date.parse(start) >= Date.parse(end)) throw new Error("El horario de inicio debe ser anterior al fin.");
     return { start, end };
   }

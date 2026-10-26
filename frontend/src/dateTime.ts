@@ -42,6 +42,12 @@ export function buenosAiresInputToIso(date: string, time: string): string {
   return `${date}T${time}:00${offsetText}`;
 }
 
+export function assertFutureStart(startIso: string, now = Date.now()) {
+  if (Date.parse(startIso) < now) {
+    throw new Error("No se pueden reservar horarios que ya pasaron. Elegí una fecha y hora futura (hora de Buenos Aires).");
+  }
+}
+
 export function formatBuenosAires(iso: string) {
   return new Intl.DateTimeFormat("es-AR", {
     timeZone: TIME_ZONE,

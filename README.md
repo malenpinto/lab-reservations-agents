@@ -1,97 +1,86 @@
-# Sistema de Reservas de Equipos de Laboratorio
+# Sistema de reservas de equipos de laboratorio
 
-## 1. Especificación inicial
+Aplicación web local para consultar disponibilidad, reservar y cancelar unidades físicas del laboratorio. Las reservas canceladas permanecen en el historial y los datos se guardan en SQLite.
 
-### 1.1. Descripción del problema
+## Equipos incluidos
 
-La coordinación de un laboratorio necesita administrar las reservas de sus equipos. Actualmente, los pedidos se registran mediante mensajes y planillas, lo que puede provocar reservas superpuestas o que una reserva cancelada continúe bloqueando la disponibilidad de una unidad.
+| Identificador | Equipo |
+| --- | --- |
+| MIC-01 | Microscopio digital |
+| MIC-02 | Microscopio digital |
+| OSC-01 | Osciloscopio |
+| MUL-01 | Multímetro |
+| FUE-01 | Fuente de alimentación |
 
-Se propone desarrollar una aplicación web local que permita consultar la disponibilidad, registrar reservas, cancelarlas y conservar su historial.
+Cada identificador corresponde a una unidad independiente. El inventario es fijo.
 
-### 1.2. Objetivo
+## Funcionalidades y reglas
 
-Desarrollar un sistema de reservas de equipos de laboratorio que permita administrar los intervalos de utilización de cada unidad, evitando superposiciones y garantizando la persistencia de los registros.
+- Consultar el inventario y la disponibilidad para un intervalo.
+- Crear reservas con un nombre ficticio y cancelar reservas activas.
+- Ver todas las reservas, incluidas las canceladas y las que corresponden a fechas anteriores.
+- Los intervalos son `[inicio, fin)`: se permiten reservas consecutivas, pero no superpuestas en una misma unidad.
+- Unidades diferentes pueden reservarse al mismo tiempo. Las canceladas no bloquean disponibilidad.
+- El inicio debe ser anterior al fin y no puede estar en el pasado al crear una reserva o consultar disponibilidad.
+- La interfaz presenta horas de `America/Argentina/Buenos_Aires`. La API recibe fechas ISO 8601 con `Z` o desplazamiento horario explícito y las compara como instantes UTC.
+- Los datos persisten en `backend/data/reservations.sqlite`; las reservas no se borran al cancelar ni al reiniciar la aplicación.
 
-El desarrollo se realizará utilizando un agente de programación, con supervisión y verificación humana de los resultados.
+## Tecnologías
 
-### 1.3. Inventario inicial
+- Backend: Node.js 22.5 o posterior, TypeScript, Express y el módulo integrado `node:sqlite`.
+- Frontend: React, TypeScript, Vite y Tailwind CSS.
+- Pruebas: Vitest y Supertest.
 
-El sistema contará con cinco unidades físicas precargadas:
+`node:sqlite` forma parte de Node.js y puede mostrar una advertencia de que su API sigue siendo experimental en esta versión de Node.
 
+## Instalación y ejecución
 
-| Identificador | Equipo                 |
-| ------------- | ---------------------- |
-| MIC-01        | Microscopio digital    |
-| MIC-02        | Microscopio digital    |
-| OSC-01        | Osciloscopio           |
-| MUL-01        | Multímetro             |
-| FUE-01        | Fuente de alimentación |
+Requisitos: Node.js 22.5 o posterior y npm.
 
+Desde la raíz del repositorio, instalá las dependencias:
 
-Cada identificador representa una unidad física independiente. No se contempla la administración del inventario.
+```sh
+npm install
+```
 
-### 1.4. Requisitos funcionales
+En PowerShell, si la política local bloquea `npm.ps1`, usá `npm.cmd` seguido de los mismos argumentos.
 
-- **RF-01:** Consultar el inventario de unidades disponibles en el sistema.
-- **RF-02:** Consultar la disponibilidad de una unidad para un intervalo determinado.
-- **RF-03:** Crear una reserva con identificador único, unidad, solicitante ficticio, fecha y hora de inicio y finalización.
-- **RF-04:** Rechazar reservas que se superpongan con otras reservas activas de la misma unidad.
-- **RF-05:** Permitir reservas consecutivas cuando el inicio de una coincida con la finalización de otra.
-- **RF-06:** Permitir reservas simultáneas de unidades físicas diferentes.
-- **RF-07:** Cancelar reservas sin eliminar sus datos históricos.
-- **RF-08:** Liberar automáticamente el intervalo correspondiente a una reserva cancelada.
-- **RF-09:** Conservar las reservas activas y canceladas después de reiniciar la aplicación.
-- **RF-10:** Consultar el historial de reservas y sus estados.
+Iniciá el backend y el frontend en dos terminales, ambas en la raíz del repositorio:
 
-### 1.5. Reglas de negocio
+```sh
+npm run dev:backend
+```
 
-- Solo se pueden reservar unidades existentes en el inventario.
-- El nombre del solicitante es obligatorio y no puede contener únicamente espacios.
-- Las fechas y horas deben ser válidas.
-- La fecha y hora de inicio debe ser estrictamente anterior a la finalización.
-- Una reserva activa bloquea su intervalo.
-- Una reserva cancelada no bloquea disponibilidad.
-- Las reservas activas de una misma unidad no pueden superponerse.
-- Los intervalos consecutivos están permitidos.
-- Dos unidades diferentes pueden reservarse simultáneamente.
-- La consulta de disponibilidad debe utilizar las mismas reglas que la creación de reservas.
+```sh
+npm run dev:frontend
+```
 
-### 1.6. Supuestos y decisiones iniciales
+Abrí la URL local que Vite indique (normalmente `http://localhost:5173`). Vite reenvía las solicitudes `/api` al backend en `http://localhost:3000`. El backend crea `backend/data/` y el esquema SQLite si aún no existen; no borra ni reinicializa una base existente. Para cambiar el puerto del backend se puede definir `PORT`.
 
-- La aplicación funcionará localmente.
-- Se utilizarán solicitantes ficticios.
-- No se implementará autenticación ni administración de roles.
-- El inventario estará precargado y no será editable desde la aplicación.
-- Se utilizará una interfaz web para facilitar las operaciones.
-- Se utilizará SQLite para la persistencia local.
-- Se utilizará un único agente de programación, con revisión humana.
-- El formato de fechas será ISO 8601, utilizando la zona horaria `America/Argentina/Buenos_Aires`.
-- Se permitirán reservas en fechas pasadas, siempre que cumplan las validaciones del intervalo, dado que la consigna no exige restringirlas.
-- No se establecerán límites adicionales de duración o anticipación de reservas.
+## API local
 
-### 1.7. Criterios de aceptación
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| `GET` | `/api/equipment` | Consultar las cinco unidades |
+| `GET` | `/api/equipment/:id/availability?start=...&end=...` | Consultar disponibilidad |
+| `POST` | `/api/reservations` | Crear una reserva |
+| `POST` | `/api/reservations/:id/cancel` | Cancelar sin borrar el registro |
+| `GET` | `/api/reservations` | Consultar el historial |
 
-Se considerará que el sistema cumple sus requisitos cuando:
+Los conflictos de reserva responden con HTTP `409`; las entradas inválidas, incluidas fechas pasadas, con `400`; y las reservas inexistentes al cancelar con `404`.
 
-1. Permita consultar las cinco unidades precargadas.
-2. Cree correctamente una reserva válida.
-3. Rechace una reserva superpuesta para la misma unidad.
-4. Permita reservas con intervalos consecutivos.
-5. Permita reservas simultáneas para unidades distintas.
-6. Rechace identificadores de unidades inexistentes, solicitantes vacíos y fechas u horarios inválidos.
-7. Permita cancelar una reserva sin eliminar su registro.
-8. Libere el intervalo de una reserva cancelada.
-9. Conserve reservas activas y canceladas después de detener y reiniciar la aplicación sin borrar los datos.
-10. Ejecute pruebas automáticas que verifiquen las reglas principales.
+## Pruebas y compilación
 
-## 2. Solución
+```sh
+npm test
+npm run typecheck
+npm run build:frontend
+```
 
-Pendiente de implementación.
+## Trabajo con Orca y Codex
 
-## 3. Preparación y uso del agente
+El challenge se trabajó en Orca, con el repositorio abierto como espacio de trabajo y terminales de PowerShell para npm y las verificaciones. Codex se utilizó como agente de programación con revisión humana por episodios. Antes de cada intervención se consultaron `README.md` y `AGENTS.md`; para trabajos de persistencia y API también se revisaron los módulos del dominio y el registro de decisiones.
 
-Pendiente de documentación.
+Las instrucciones del agente están en [`AGENTS.md`](AGENTS.md). Allí se definen el alcance del challenge, las tecnologías acordadas, las reglas de intervalos y fechas, el manejo del inventario y las reservas canceladas, las pruebas requeridas y las restricciones sobre dependencias, datos persistidos, documentación y Git. Las solicitudes humanas autorizaron cada episodio y las dependencias correspondientes. El agente no hizo commits ni push; los commits anotados en [`docs/decisions.md`](docs/decisions.md) fueron creados por el flujo humano del proyecto.
 
-## 4. Registro de decisiones y delegación
-
-Pendiente de documentación.
+El desarrollo se organizó en tres episodios: dominio y disponibilidad, persistencia/API y frontend. La política final de no aceptar fechas pasadas se agregó después, por decisión humana, como mejora funcional adicional.
