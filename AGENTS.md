@@ -48,7 +48,8 @@ No incorporar frameworks, servicios externos ni dependencias adicionales sin jus
 
 - Utilizar fechas y horas en formato ISO 8601.
 - Aplicar la zona horaria `America/Argentina/Buenos_Aires`.
-- Permitir reservas en fechas pasadas, de acuerdo con los supuestos iniciales.
+- Rechazar reservas y consultas de disponibilidad cuyo inicio ya haya pasado, comparando instantes ISO normalizados.
+- Mantener la consulta del historial sin restricciones temporales para conservar y mostrar reservas anteriores.
 - No establecer límites adicionales de duración o anticipación.
 - Mantener un criterio consistente para interpretar, almacenar y comparar intervalos.
 

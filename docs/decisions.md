@@ -1,117 +1,142 @@
 # Registro de decisiones y delegaciones
 
-Este registro conserva las decisiones humanas, el trabajo delegado a Codex, los problemas observados, las verificaciones y los commits que aparecen en el historial Git. Los commits de los episodios 1 a 3 son hechos del historial; el ajuste de fechas pasadas de la entrega final no tiene commit todavía.
+Registro del trabajo humano y asistido por Codex. Los hashes fueron leídos del historial local de Git; al iniciar el cierre, `HEAD` y `origin/main` señalaban `b51f5e9` y el árbol estaba limpio. El ajuste documental de este cierre no se versiona desde esta intervención.
 
-## Decisiones
+## Decisiones humanas
 
 ### D-001. Entorno y agente
 
-**Decisión inicial:** utilizar Orca como entorno de trabajo y Codex CLI como agente, con revisión humana.
+**Decisión:** utilizar Orca como entorno de trabajo y Codex como agente de programación, con revisión humana por etapas.
 
-**Motivo:** trabajar directamente sobre el repositorio y revisar cada episodio antes de continuar.
+**Motivo:** trabajar directamente sobre el repositorio, ejecutar herramientas y revisar cada resultado antes de avanzar.
+
+**Alternativas registradas:** VS Code con Codex y Claude Code. Se eligió Orca con Codex para el flujo asistido previsto por el challenge y la supervisión humana desde el mismo espacio de trabajo. No hay evidencia visible de una evaluación comparativa formal entre modelos.
 
 ### D-002. Tecnologías
 
-**Decisión:** React, TypeScript, Vite y Tailwind CSS para la interfaz; Node.js, Express y TypeScript para el backend; SQLite para persistencia y Vitest para pruebas.
+**Decisión inicial:** React, TypeScript, Vite y Tailwind CSS para la interfaz; Node.js, Express y TypeScript para el backend; SQLite para datos y Vitest para pruebas.
 
-**Motivo:** mantener la aplicación local y la arquitectura sencilla, sin servidor externo de base de datos.
+**Desarrollo:** para mantener el backend simple y sin paquete de base de datos adicional, se aprobó `node:sqlite` integrado, junto con `tsx` y Supertest. Requiere Node 22.5 o posterior; el runtime verificado fue Node 22.23.4.
 
-**Implementación acordada durante el Episodio 2:** usar `node:sqlite` integrado en Node 22.5 o posterior, `tsx` para ejecutar TypeScript y Supertest para pruebas HTTP.
+**Alternativa de base registrada al inicio:** PostgreSQL; se descartó por requerir un servidor de base de datos para una aplicación local.
 
-### D-003. Interfaz web
+### D-003. Interfaz
 
-**Decisión:** incorporar una interfaz para consultar disponibilidad, crear/cancelar reservas y ver el historial.
+**Decisión:** incluir interfaz web para inventario, consulta, reservas, cancelación e historial, aunque la interfaz no fuera necesaria para probar el dominio.
 
-**Motivo:** facilitar el uso y la demostración del challenge.
+**Motivo:** hacer utilizable y demostrable la aplicación local.
 
-### D-004. Supervisión y publicación
+**Alternativa registrada:** implementar únicamente la API.
 
-**Decisión:** trabajar con autonomía controlada y revisión humana por episodios. Codex no realiza commits ni push sin autorización.
+### D-004. Revisión y publicación
 
-**Consecuencia:** los commits existentes fueron realizados por el flujo humano del proyecto. Este registro anota sus identificadores verificados.
+**Decisión:** Codex no debía hacer commit ni push; esos controles y la aceptación final correspondían a la persona usuaria. Las dependencias se instalaron solo tras autorización. Git se ejecutó con `-c safe.directory=<ruta>` por comando por la diferencia de propietario, sin cambiar configuración global/local persistente.
 
 ### D-005. Fechas e intervalos — decisión histórica parcialmente reemplazada
 
-**Decisión inicial:** usar ISO 8601, `America/Argentina/Buenos_Aires` e intervalos `[inicio, fin)`; se permitían reservas pasadas porque la consigna inicial no las prohibía.
+**Decisión inicial:** timestamps ISO 8601 con zona `America/Argentina/Buenos_Aires`, normalizados a UTC, e intervalos `[inicio, fin)`. La especificación inicial permitía fechas pasadas porque no las prohibía.
 
-**Vigente:** se mantienen ISO 8601, la zona horaria indicada y los intervalos `[inicio, fin)`. La regla inicial que permitía reservas pasadas fue modificada por D-006 al final del desarrollo. Las reservas históricas existentes siguen siendo consultables.
+**Vigente:** continúan ISO 8601, la interpretación de Buenos Aires en frontend, normalización a UTC y los intervalos `[inicio, fin)`. La permisividad sobre nuevas fechas pasadas fue reemplazada por D-006. El acceso al historial viejo sigue permitido.
 
-### D-006. No admitir solicitudes con inicio pasado
+### D-006. Rechazar nuevos intervalos cuyo inicio ya pasó
 
-**Decisión humana de entrega:** impedir una nueva reserva cuyo instante de inicio ya pasó. La consulta de disponibilidad aplica la misma regla para mantener coherencia entre consulta y creación. La interfaz interpreta la entrada como hora de Buenos Aires y muestra un mensaje claro; el backend compara el instante normalizado con el momento de la solicitud.
+**Decisión humana de cierre:** aunque la consigna inicial permitía fechas pasadas, impedir crear reservas o consultar disponibilidad para un inicio pasado. Mantener el historial de reservas previas sin restricción.
 
-**Alcance:** el historial de reservas, incluidas las reservas anteriores y las canceladas, continúa disponible sin esta restricción. La comprobación afecta la creación y la consulta de disponibilidad, no la lectura histórica.
+**Motivo:** adecuar la operación del calendario sin ocultar registros históricos.
 
-**Motivo:** hacer más lógica la operación del sistema de reservas, aunque el requisito inicial no exigiera este límite.
+**Evidencia:** [instrucciones vigentes](../AGENTS.md), [servicio backend](../backend/src/services/reservationService.ts), [conversión/validación horaria frontend](../frontend/src/dateTime.ts), [pruebas API](../backend/src/api/reservations.test.ts) y [pruebas frontend](../frontend/src/dateTime.test.ts).
 
-## Episodios de delegación
+**Commit real:** `0f2ff9d` — `feat: validar fechas futuras y completar documentación`.
+
+## Episodios reales de delegación
 
 ### Episodio 1 — Dominio e inventario
 
-**Objetivo:** implementar las cinco unidades, tipos/estados de reserva, validaciones y disponibilidad con TypeScript y Vitest.
+**Objetivo:** implementar las cinco unidades fijas, tipos/estados, validaciones y disponibilidad.
 
-**Instrucciones:** leer `README.md` y `AGENTS.md`; limitar la intervención al dominio; no agregar persistencia, API o interfaz en esa etapa; no modificar dependencias sin autorización ni hacer commit/push.
+**Contexto suministrado:** README y AGENTS; luego se revisó la propuesta antes de autorizar cambios. Se proporcionó el alcance del dominio y los criterios de aceptación.
 
-**Trabajo:** dominio bajo `backend/src/domain/`, intervalos `[inicio, fin)`, normalización UTC, validación de timestamps ISO con zona y pruebas de reglas.
+**Extracto de instrucción:** “Implementá únicamente el Episodio 1” y “No implementar todavía SQLite, Express ni React”. También se indicó no tocar la documentación ni hacer commit/push.
 
-**Problemas y soluciones:** la revisión detectó que las fechas inválidas del calendario y offsets fuera del rango estándar requerían casos adicionales. Se extrajo `validateInterval()` para compartir la normalización y se documentó la precondición de `intervalsOverlap()`. Vitest encontró que se aceptaba `+14:01`; el rango se ajustó a `±14:00`.
+**Resultado del agente:** `backend/src/domain/equipment.ts`, `reservation.ts` y pruebas Vitest, con intervalos `[inicio, fin)`, timestamps zonificados y normalización UTC.
 
-**Verificación registrada:** 17 pruebas Vitest aprobadas y `tsc --noEmit` sin errores. En la revisión humana también se informó `npm audit` con 0 vulnerabilidades tras actualizar a Vitest 5.0.5.
+**Problemas/adaptación:** la revisión humana pidió extraer la validación compartida del intervalo y agregar límites de calendario/offset. Una primera ejecución detectó que se aceptaba `+14:01`; se limitó el offset a `±14:00`. Se corrigió la codificación UTF-8 de mensajes de error. La adaptación a un módulo `backend/src/domain/` aisló el dominio del futuro frontend.
+
+**Decisión humana:** se corrigió la implementación en la revisión y luego se aceptó/versionó cuando las 17 pruebas y TypeScript pasaron. El motivo fue cubrir explícitamente los casos ISO y conservar la regla común sin agregar una biblioteca de fechas.
+
+**Evidencia:** [inventario](../backend/src/domain/equipment.ts), [reglas de reserva](../backend/src/domain/reservation.ts) y [pruebas de dominio](../backend/src/domain/reservation.test.ts); verificación registrada de 17 pruebas y `tsc --noEmit` sin errores.
 
 **Commit real:** `0e1ecaf` — `feat: implementar dominio y disponibilidad de reservas`.
 
 ### Episodio 2 — SQLite y API REST
 
-**Objetivo:** añadir persistencia SQLite y endpoints de inventario, disponibilidad, creación, cancelación e historial, reutilizando el dominio.
+**Objetivo:** agregar almacenamiento persistente y API de inventario, disponibilidad, creación, cancelación e historial.
 
-**Instrucciones:** usar `node:sqlite` si funcionaba con Node 22, `tsx` y Supertest; conservar datos al reiniciar y cancelaciones; serializar comprobación e inserción; no agregar interfaz todavía.
+**Contexto suministrado:** README, AGENTS, registro de decisiones y dominio ya versionado. Se excluyeron React y cualquier funcionalidad ajena a la reserva local.
 
-**Trabajo:** `backend/src/db/`, repositorio, servicio, rutas, composición Express y pruebas HTTP. El archivo persistente se ubica en `backend/data/reservations.sqlite` y está excluido de Git. `BEGIN IMMEDIATE` mantiene atómicos el chequeo de superposición y la inserción.
+**Extracto de instrucción:** “Prefiero usar `node:sqlite` para evitar dependencias adicionales, siempre que funcione correctamente con mi versión de Node 22” y “asegurate de que no se puedan crear reservas superpuestas, incluso si llegan solicitudes simultáneas”.
 
-**Problemas y soluciones:** la instalación npm dentro del sandbox quedó esperando y se solicitó autorización para repetirla fuera del sandbox. En la primera ejecución de verificaciones, se corrigieron expectativas que comparaban fechas originales en lugar de UTC, y tipos de filas SQLite/parámetros Express. Se ajustaron y volvieron a ejecutar las pruebas.
+**Resultado del agente:** `backend/src/db/`, repositorio, servicio, rutas Express, composición de la app y pruebas HTTP. El esquema usa creación idempotente; el archivo en `backend/data/` se conserva. `BEGIN IMMEDIATE` hace atómicos chequeo e inserción.
 
-**Verificación registrada:** 23 pruebas aprobadas, `npm run typecheck` sin errores y las instalaciones informaron 0 vulnerabilidades. Node 22.23.4 emitió la advertencia de que `node:sqlite` es experimental.
+**Problemas/adaptación:** npm quedó esperando dentro del sandbox, se interrumpió y la instalación se repitió fuera del sandbox con autorización. La primera verificación encontró expectativas de fecha sin normalizar y dos incompatibilidades TypeScript; se corrigieron y se volvieron a ejecutar tests y typecheck. El módulo nativo produjo la advertencia experimental esperada.
+
+**Decisión humana:** se aprobó `node:sqlite` por reducir dependencias y se aceptó el episodio luego de comprobar pruebas, tipos y cero vulnerabilidades informadas por npm. La prueba concurrente confirmó una creación (`201`) y un conflicto (`409`).
+
+**Evidencia:** [base SQLite](../backend/src/db/database.ts), [servicio](../backend/src/services/reservationService.ts) y [pruebas API](../backend/src/api/reservations.test.ts); 23 pruebas y `npm run typecheck` aprobados antes del commit.
 
 **Commit real:** `0c5a5d7` — `feat: implementar API y persistencia SQLite`.
 
 ### Episodio 3 — Interfaz React
 
-**Objetivo:** completar la interfaz web conectada a la API, con inventario, disponibilidad, formulario, estados y listado histórico.
+**Objetivo:** permitir consultar equipos/disponibilidad, crear reservas, cancelarlas y conservar el historial desde el navegador.
 
-**Instrucciones:** usar React, TypeScript, Vite y Tailwind; mantener la aplicación sencilla; enviar fechas ISO con offset de Buenos Aires; permitir cancelación sin ocultar el historial cancelado.
+**Contexto suministrado:** README, AGENTS, backend terminado y contratos HTTP. Se excluyeron cambios de API, documentación, autenticación y dependencias visuales no necesarias.
 
-**Trabajo:** aplicación en `frontend/`, cliente de API, conversión de hora local `America/Argentina/Buenos_Aires`, proxy Vite para `/api` y scripts npm para frontend/backend.
+**Extracto de instrucción:** “Usá fechas y horarios de Argentina, y asegurate de enviar a la API el formato ISO con zona horaria que espera el backend” y “No hagas commit ni push, ni modifiques todavía la documentación”.
 
-**Problemas y soluciones:** la instalación de React también quedó esperando dentro del sandbox; se solicitó autorización y se completó fuera de él. Se usó el proxy de Vite para conectar con el backend local sin agregar un servicio o dependencia de CORS.
+**Resultado del agente:** frontend React/TypeScript en `frontend/`, API client, conversión horaria `America/Argentina/Buenos_Aires`, Vite proxy `/api`, estilos Tailwind y scripts npm.
 
-**Verificación registrada:** 23 pruebas aprobadas, `npm run typecheck` sin errores y `npm run build:frontend` compiló correctamente. La persona usuaria informó que probó la interfaz en el navegador y confirmó reservas, cancelaciones e historial; Codex no realizó esa comprobación manual.
+**Problemas/adaptación:** la instalación volvió a quedar esperando dentro del sandbox y se completó con autorización fuera de él. El proxy de Vite conectó la UI al backend local sin una dependencia de CORS.
+
+**Decisión humana:** la persona usuaria probó la interfaz en navegador, confirmó reservas, cancelaciones e historial, y luego realizó el push. Esta aceptación manual se atribuye a la persona usuaria; no fue una prueba de navegador ejecutada por Codex.
+
+**Evidencia:** [pantalla principal](../frontend/src/App.tsx), [cliente API](../frontend/src/api.ts), [fechas](../frontend/src/dateTime.ts) y [configuración Vite](../frontend/vite.config.ts); 23 pruebas, `npm run typecheck` y `npm run build:frontend` aprobados en el episodio.
 
 **Commit real:** `a4d212f` — `feat: implementar interfaz web de reservas`.
 
-### Ajuste final de entrega — regla contra horarios pasados
+## Cierre y persistencia manual
 
-**Objetivo delegado:** validar en backend y frontend que el inicio de una nueva reserva/consulta no haya pasado, manteniendo visible el historial anterior; actualizar pruebas y completar README y este registro.
+La persona usuaria informó la prueba manual **“Prueba Persistencia”**: creó una reserva con ese nombre, detuvo el backend, lo reinició y verificó que la reserva activa siguiera en el historial. Es evidencia manual reportada por la persona; no se presenta como prueba ejecutada por Codex.
 
-**Estado:** cambio solicitado e implementado en esta intervención, aún no versionado. No se registra commit para este ajuste.
+La suite automatizada también incluye `preserves active and cancelled reservations after reopening the database` en las [pruebas API](../backend/src/api/reservations.test.ts): crea una activa y una cancelada, cierra la conexión, reabre el archivo y comprueba que ambos estados sigan en el historial. La prueba sí se ejecutó con Vitest.
 
-**Problemas y soluciones:** las fechas fijas del Episodio 2 podían quedar en el pasado al cambiar el día. Se reemplazaron por intervalos futuros generados al ejecutar las pruebas. Se añadió una prueba que verifica que creación y disponibilidad rechazan el mismo intervalo pasado y otra que confirma que el historial sigue devolviendo reservas antiguas. La validación del frontend se extrajo a una función pequeña para probarla directamente.
+## Entorno, harness, modelo, permisos y controles
 
-**Verificación ejecutada:** `npm.cmd test` pasó con 28 pruebas en 3 archivos; `npm.cmd run typecheck` terminó sin errores; `npm.cmd run build:frontend` compiló correctamente. Vitest mostró la advertencia experimental de `node:sqlite` de Node 22.
+- **Entorno informado por el proyecto:** Orca, con PowerShell para Node/npm/Git. La versión de Orca no fue informada.
+- **Agente/harness:** Codex CLI `0.164.0`, comprobado directamente por la persona usuaria en la interfaz de Orca. No fue detectado automáticamente por el agente.
+- **Modelo y razonamiento:** GPT-6-Luna, nivel `Low`, comprobados directamente por la persona usuaria en la interfaz de Orca. No fueron detectados automáticamente por el agente.
+- **Runtime verificado en revisión:** Node `v22.23.4`, npm `10.9.9`. Paquetes concretos registrados en `package.json`/lockfile.
+- **Instrucciones:** `AGENTS.md` aporta reglas persistentes de arquitectura, alcance, dependencias, datos, pruebas, revisión y Git. En cada episodio se agregaron instrucciones humanas concretas; los extractos están arriba.
+- **Contexto incluido:** README, AGENTS y los módulos del dominio/backend relevantes de cada tarea. **Excluido/no suministrado:** credenciales, secretos, datos reales de solicitantes y PDF de la consigna dentro del repositorio.
+- **Permisos:** escritura limitada al repositorio; lectura de otros archivos restringida por el sandbox. Las instalaciones npm que no avanzaron en sandbox se repitieron solo con aprobación de escalación. No se usaron cambios persistentes de `safe.directory`.
+- **Controles humanos:** aprobación por episodio y revisión de resultados; la persona usuaria hizo los commits/push; Codex no publicó cambios.
 
-**Commit:** ninguno todavía; el cambio queda pendiente de revisión humana y publicación por la persona usuaria.
+## Commits verificados
 
-## Instrucciones y configuración usadas
+| Hash | Mensaje |
+| --- | --- |
+| `0e1ecaf` | `feat: implementar dominio y disponibilidad de reservas` |
+| `0c5a5d7` | `feat: implementar API y persistencia SQLite` |
+| `a4d212f` | `feat: implementar interfaz web de reservas` |
+| `0f2ff9d` | `feat: validar fechas futuras y completar documentación` |
+| `b51f5e9` | `docs: completar informacion academica y resultados de pruebas` |
 
-- El repositorio se trabajó desde Orca; PowerShell fue la terminal para Node/npm y Git.
-- Codex recibió `AGENTS.md` como instrucciones persistentes del repositorio. Ese archivo pide revisar el README antes de implementar, respetar el alcance autorizado, conservar datos, justificar dependencias, ejecutar y reportar verificaciones, no publicar cambios sin permiso y dejar la revisión humana entre etapas.
-- El README y las instrucciones se consultaron al comenzar cada etapa; las decisiones aceptadas y restricciones específicas también se pasaron en las solicitudes humanas de cada episodio.
-- Las herramientas/configuraciones del proyecto incluyen scripts npm en `package.json`, `tsconfig.json`, Vite con proxy `/api`, Tailwind mediante el plugin de Vite y pruebas Vitest/Supertest.
+Los dos últimos hashes fueron añadidos después de la actualización inicial de este registro; reemplazan la nota anterior que decía que la validación futura seguía sin commit.
 
-## Verificaciones de entrega
+## Verificación de cierre — 2026-10-26
 
-- `npm.cmd test`: 28 pruebas aprobadas en 3 archivos.
-- `npm.cmd run typecheck`: sin errores.
-- `npm.cmd run build:frontend`: compilación Vite aprobada.
-- Limitación observada: Node 22 presenta la advertencia habitual de que `node:sqlite` es experimental.
-
-No se registraron como ejecutadas verificaciones que solo se propusieron.
+- `npm.cmd test`: 3 archivos y 28 pruebas aprobadas.
+- `npm.cmd run typecheck`: finalizó sin errores.
+- `npm.cmd run build:frontend`: Vite compiló correctamente (18 módulos transformados).
+- Node mostró `ExperimentalWarning` para `node:sqlite`; las verificaciones finalizaron con código 0.
+- La prueba manual `Prueba Persistencia` fue informada por la persona usuaria; no se atribuye a Codex.
