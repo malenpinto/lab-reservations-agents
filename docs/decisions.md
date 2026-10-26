@@ -66,7 +66,48 @@ Cada episodio deberá registrar:
 - Revisión y decisión humana.
 - Evidencia verificable mediante archivos, pruebas o commits.
 
-### Episodio 1. Pendiente
+## Episodio 1 — Implementación del dominio y disponibilidad
+
+**Agente:** OpenAI Codex CLI, ejecutado desde Orca.
+
+**Objetivo delegado:** implementar el inventario inicial, las validaciones de reservas y la lógica de disponibilidad, utilizando TypeScript y Vitest.
+
+### Contexto e instrucciones
+
+El agente recibió como contexto `README.md` y `AGENTS.md`, donde se establecen los requisitos funcionales, las tecnologías y las restricciones del proyecto.
+
+Se autorizó una implementación limitada al dominio, sin incorporar todavía SQLite, Express ni React. También se indicó que no debía realizar commits ni push sin aprobación humana.
+
+### Acciones realizadas por el agente
+
+- Implementación del inventario fijo de cinco unidades.
+- Definición de los tipos de reserva y estados `ACTIVE` y `CANCELLED`.
+- Validación de solicitantes, unidades, fechas e intervalos.
+- Implementación de la detección de superposiciones y consulta de disponibilidad.
+- Creación de pruebas automatizadas con Vitest.
+- Refactorización para compartir la validación de intervalos entre las operaciones.
+
+### Revisión e intervención humana
+
+Durante la revisión se detectaron vulnerabilidades en las dependencias de Vitest. Se actualizó manualmente a Vitest 5.0.5 y se verificó que las pruebas continuaran funcionando.
+
+También se solicitó al agente mejorar la reutilización de las validaciones y ampliar las pruebas para fechas y desplazamientos horarios.
+
+Se incorporó `.gitignore` para evitar versionar `node_modules/`.
+
+### Verificaciones
+
+- `npm test`: 17 pruebas aprobadas.
+- `npx tsc --noEmit`: sin errores.
+- `npm audit`: 0 vulnerabilidades.
+
+### Aceptación
+
+La implementación fue revisada y aceptada para incorporarse a la rama `main`.
+
+**Commit:** 0e1ecaf (HEAD -&gt; main, origin/main) feat: implementar dominio y disponibilidad de reservas
+
+**Archivos principales:** `backend/src/domain/equipment.ts`, `backend/src/domain/reservation.ts`, `backend/src/domain/reservation.test.ts`, `package.json`, `package-lock.json`, `tsconfig.json` y `.gitignore`.
 
 ### Episodio 2. Pendiente
 
