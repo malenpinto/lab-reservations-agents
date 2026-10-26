@@ -1,16 +1,29 @@
 # Sistema de reservas de equipos de laboratorio
 
-Aplicación web local para consultar disponibilidad, reservar y cancelar unidades físicas del laboratorio. Las reservas canceladas permanecen en el historial y los datos se guardan en SQLite.
+Proyecto desarrollado como parte del **Challenge IA** de la asignatura **Tópicos Avanzados de Ingeniería de Software**, correspondiente a la carrera de **Licenciatura en Sistemas de Información** de la **Facultad de Ciencias Exactas y Naturales y Agrimensura (FaCENA)**, **Universidad Nacional del Nordeste (UNNE)**.
+
+**Estudiante:** Pinto Espíndola, Malen Aymará  
+**Profesor:** Irrazabal, Emanuel   
+**Asignatura:** Tópicos Avanzados de Ingeniería de Software  
+**Carrera:** Licenciatura en Sistemas de Información  
+**Facultad:** FaCENA – Universidad Nacional del Nordeste  
+**Año:** 2026
+
+El proyecto consiste en el desarrollo de un sistema de reservas de equipos de laboratorio mediante el uso de agentes de inteligencia artificial, utilizando **Orca como entorno de trabajo y Codex como agente de programación**.
+
+La aplicación permite consultar la disponibilidad de equipos, registrar y cancelar reservas, conservar el historial y persistir los datos mediante SQLite.
 
 ## Equipos incluidos
 
-| Identificador | Equipo |
-| --- | --- |
-| MIC-01 | Microscopio digital |
-| MIC-02 | Microscopio digital |
-| OSC-01 | Osciloscopio |
-| MUL-01 | Multímetro |
-| FUE-01 | Fuente de alimentación |
+
+| Identificador | Equipo                 |
+| ------------- | ---------------------- |
+| MIC-01        | Microscopio digital    |
+| MIC-02        | Microscopio digital    |
+| OSC-01        | Osciloscopio           |
+| MUL-01        | Multímetro             |
+| FUE-01        | Fuente de alimentación |
+
 
 Cada identificador corresponde a una unidad independiente. El inventario es fijo.
 
@@ -59,13 +72,15 @@ Abrí la URL local que Vite indique (normalmente `http://localhost:5173`). Vite 
 
 ## API local
 
-| Método | Ruta | Uso |
-| --- | --- | --- |
-| `GET` | `/api/equipment` | Consultar las cinco unidades |
-| `GET` | `/api/equipment/:id/availability?start=...&end=...` | Consultar disponibilidad |
-| `POST` | `/api/reservations` | Crear una reserva |
-| `POST` | `/api/reservations/:id/cancel` | Cancelar sin borrar el registro |
-| `GET` | `/api/reservations` | Consultar el historial |
+
+| Método | Ruta                                                | Uso                             |
+| ------ | --------------------------------------------------- | ------------------------------- |
+| `GET`  | `/api/equipment`                                    | Consultar las cinco unidades    |
+| `GET`  | `/api/equipment/:id/availability?start=...&end=...` | Consultar disponibilidad        |
+| `POST` | `/api/reservations`                                 | Crear una reserva               |
+| `POST` | `/api/reservations/:id/cancel`                      | Cancelar sin borrar el registro |
+| `GET`  | `/api/reservations`                                 | Consultar el historial          |
+
 
 Los conflictos de reserva responden con HTTP `409`; las entradas inválidas, incluidas fechas pasadas, con `400`; y las reservas inexistentes al cancelar con `404`.
 
@@ -76,6 +91,8 @@ npm test
 npm run typecheck
 npm run build:frontend
 ```
+
+En la última verificación realizada durante el desarrollo, se ejecutaron satisfactoriamente 28 pruebas automatizadas, la comprobación de tipos de TypeScript y la compilación del frontend. También se comprobó manualmente la persistencia de una reserva después de reiniciar el servidor.
 
 ## Trabajo con Orca y Codex
 
